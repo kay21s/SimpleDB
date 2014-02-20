@@ -3,6 +3,8 @@ package simpledb;
 import java.util.*;
 import java.io.*;
 
+import simpledb.TupleDesc.TDItem;
+
 /**
  * Each instance of HeapPage stores data for one page of HeapFiles and 
  * implements the Page interface that is used by BufferPool.
@@ -67,7 +69,7 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
         // some code goes here
-        return 0;
+        return (int)Math.floor((BufferPool.getPageSize() * 8) / (td.getSize() * 8 + 1));
 
     }
 
@@ -75,10 +77,9 @@ public class HeapPage implements Page {
      * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
-    private int getHeaderSize() {        
-        
+    private int getHeaderSize() {
         // some code goes here
-        return 0;
+        return (int)Math.ceil(getNumTuples() / 8);
                  
     }
     
@@ -111,8 +112,8 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    // some code goes here
-    throw new UnsupportedOperationException("implement this");
+        // some code goes here
+        return this.pid;
     }
 
     /**
@@ -265,7 +266,7 @@ public class HeapPage implements Page {
      */
     public void markDirty(boolean dirty, TransactionId tid) {
         // some code goes here
-	// not necessary for lab1
+    // not necessary for lab1
     }
 
     /**
@@ -273,7 +274,7 @@ public class HeapPage implements Page {
      */
     public TransactionId isDirty() {
         // some code goes here
-	// Not necessary for lab1
+    // Not necessary for lab1
         return null;      
     }
 
@@ -282,7 +283,16 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        return 0;
+        int counter = 0;
+        for (int i = 0; i < header.length; i ++) {
+            for (int j = 0; j < 8; j ++) {
+                if ((header[i] & (0x01 << j)) == 0) {
+                    counter ++;
+                }
+            }
+        }
+        
+        return counter;
     }
 
     /**
@@ -290,7 +300,11 @@ public class HeapPage implements Page {
      */
     public boolean isSlotUsed(int i) {
         // some code goes here
-        return false;
+        if ((header[i/8] & (0x01 << (i % 8))) == 0) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -307,7 +321,22 @@ public class HeapPage implements Page {
      */
     public Iterator<Tuple> iterator() {
         // some code goes here
-        return null;
+        return new Iterator<Tuple>() {
+            private int count = 0;
+            public boolean hasNext() {
+                for (; count < numSlots; count ++) {
+                    if (isSlotUsed(count))
+                        return true;
+                }
+                return false;
+            }
+            public Tuple next() {
+                return tuples[count++];
+            }
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
 }
