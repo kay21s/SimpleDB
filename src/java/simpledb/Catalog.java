@@ -20,10 +20,10 @@ import simpledb.TupleDesc.TDItem;
  */
 public class Catalog {
 
-	private Map<String, Integer> _name2id;
-	private Map<Integer, DbFile> _id2dbfile;
-	private Map<Integer, String> _id2name;
-	private Map<Integer, String> _id2pkey;
+    private Map<String, Integer> _name2id;
+    private Map<Integer, DbFile> _id2dbfile;
+    private Map<Integer, String> _id2name;
+    private Map<Integer, String> _id2pkey;
 	
     /**
      * Constructor.

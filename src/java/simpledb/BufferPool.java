@@ -34,12 +34,12 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         // some code goes here
-    	_numPages = numPages;
-    	_pages = new ConcurrentHashMap<PageId, Page>();
+        _numPages = numPages;
+        _pages = new ConcurrentHashMap<PageId, Page>();
     }
     
     public static int getPageSize() {
-      return PAGE_SIZE;
+	return PAGE_SIZE;
     }
 
     /**
@@ -60,20 +60,20 @@ public class BufferPool {
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
-    	Page page = _pages.get(pid);
-    	
-    	if (page != null) {
-    		return page;
-    	} else {
-    		if (_pages.size() >= _numPages)
-    			throw new DbException("too many pages");
-    		
-    		Page newPage = Database.getCatalog()
-    					           .getDatabaseFile(pid.getTableId())
-    					           .readPage(pid);
-    		_pages.put(pid, newPage);
-    		return newPage;
-    	}
+        Page page = _pages.get(pid);
+        
+        if (page != null) {
+            return page;
+        } else {
+            if (_pages.size() >= _numPages)
+                throw new DbException("too many pages");
+            
+            Page newPage = Database.getCatalog()
+                                   .getDatabaseFile(pid.getTableId())
+                                   .readPage(pid);
+            _pages.put(pid, newPage);
+            return newPage;
+        }
     }
 
     /**

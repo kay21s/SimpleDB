@@ -79,7 +79,7 @@ public class HeapPage implements Page {
      */
     private int getHeaderSize() {
         // some code goes here
-        return (int)Math.ceil(getNumTuples() / 8);
+        return (int)Math.ceil(getNumTuples() / 8.0f);
                  
     }
     
@@ -299,8 +299,7 @@ public class HeapPage implements Page {
      * Returns true if associated slot on this page is filled.
      */
     public boolean isSlotUsed(int i) {
-        // some code goes here
-        if ((header[i/8] & (0x01 << (i % 8))) == 0) {
+        if ((header[(int)Math.floor(i/8)] & (0x01 << (i % 8))) == 0) {
             return false;
         } else {
             return true;
@@ -321,23 +320,48 @@ public class HeapPage implements Page {
      */
     public Iterator<Tuple> iterator() {
         // some code goes here
-        return new Iterator<Tuple>() {
-            private int count = 0;
-            public boolean hasNext() {
-                for (; count < numSlots; count ++) {
-                    if (isSlotUsed(count))
-                        return true;
-                }
-                return false;
-            }
-            public Tuple next() {
-                return tuples[count++];
-            }
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
+        return new TupleIt(this);
     }
-
 }
 
+class TupleIt implements Iterator<Tuple> {
+
+    private HeapPage    _page;
+    private int         _next;
+
+    TupleIt(HeapPage page) {
+        _page = page;
+        _next = next_filled_slot(0);
+    }
+
+    public boolean hasNext() {
+        if (_next < _page.numSlots) {
+            return true;
+        }
+        else
+            return false;
+    }
+
+    public Tuple next() throws NoSuchElementException {
+        if (hasNext()) {
+            Tuple t = _page.tuples[_next];
+            _next = next_filled_slot(_next + 1);
+            return t;
+        } else {
+            throw new NoSuchElementException();
+        }
+    }
+
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+
+    private int next_filled_slot(int start) {
+        for (int i = start; i < _page.numSlots; i++) {
+            if (_page.isSlotUsed(i))
+                return i;
+        }
+
+        return _page.numSlots;
+    }
+}
